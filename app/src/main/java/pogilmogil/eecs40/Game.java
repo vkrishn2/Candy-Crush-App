@@ -24,11 +24,13 @@ public class Game extends AppCompatActivity implements View.OnTouchListener{
     int x,y = 0;
     Integer[][] gridArray = new Integer[9][9];
     Paint value = new Paint();
+    Integer valueofscore = 0;
     String point_score = "0";
     int counter = 0;
     int temp_grid, temp_grid2;
     int off1, off2, off3, off4, off5, off6 = 0;
     int tempoff = 0;
+    int morethan;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +55,11 @@ public class Game extends AppCompatActivity implements View.OnTouchListener{
             }
         }
 
-        fixStartBoard();
+        for(int i = 0; i < 10; i++){
+            checkBoard();
+            dropBoard();
+        }
+        valueofscore = 0;
         setContentView(v);
     }
 
@@ -84,8 +90,7 @@ public class Game extends AppCompatActivity implements View.OnTouchListener{
 
     protected void checkBoard(){
         int current_orb;
-        gridArray[initx][inity] = temp_grid2;
-        gridArray[finalx][finaly] = temp_grid;
+        morethan = 0;
         for(int i=0; i<9; i++) {
             for (int j = 0; j < 7; j++) {
                 current_orb = gridArray[i][j];
@@ -94,6 +99,7 @@ public class Game extends AppCompatActivity implements View.OnTouchListener{
                         gridArray[i][j] = 0;
                         gridArray[i][j+1] = 0;
                         gridArray[i][j+2] = 0;
+                        morethan = 1;
                         for (int k = j+3; k < 9; k++) {
                             if ((gridArray[i][k] == current_orb)) {
                                 gridArray[i][k] = 0;
@@ -114,7 +120,8 @@ public class Game extends AppCompatActivity implements View.OnTouchListener{
                         gridArray[i][j] = 0;
                         gridArray[i+1][j] = 0;
                         gridArray[i+2][j] = 0;
-                        for (int k = i+3; k < 10; k++) {
+                        morethan = 1;
+                        for (int k = i+3; k < 9; k++) {
                             if ((gridArray[k][j] == current_orb)) {
                                 gridArray[k][j] = 0;
                             }
@@ -129,27 +136,31 @@ public class Game extends AppCompatActivity implements View.OnTouchListener{
     }
 
     protected void dropBoard(){
-        int numblank = 0;
-        for(int i=8; i>-1; i--) {
-            for(int j=8; j>-1; j--) {
-                if(gridArray[i][j] == 0){
-                    numblank+=1;
-                    for(int k=0; k<j; k++){
-                        if(gridArray[i][j+k] == 0){
-                            numblank+=1;
+        int i, j, all;
+        Random random_num = new Random();
+        //checking for 0/no images starting bottom then up
+        for (all = 0; all < 9; all++) {
+            for (i = 8; i >= 0; i--) {
+                for (j = 8; j > 0; j--) {
+                    if (gridArray[i][j] == 0) {
+                        try{
+                            Thread.sleep(100);
+                        }catch (InterruptedException e){
+                            e.printStackTrace();
                         }
+                        gridArray[i][j] = gridArray[i][j - 1];
+                        gridArray[i][j - 1] = 0;
                     }
                 }
-
-
-
-
-
-
-
+            }
+            j=0;
+            for (i = 0; i < 9; i++) {
+                if (gridArray[i][j] == 0) {
+                    valueofscore += 100;
+                    gridArray[i][j] = random_num.nextInt(6) + 1;
+                }
             }
         }
-
     }
 
     @Override
@@ -227,19 +238,27 @@ public class Game extends AppCompatActivity implements View.OnTouchListener{
                             temp_grid2 = gridArray[finalx][finaly];
                             Log.i("TAG", "First grid id number is: "+temp_grid);
                             Log.i("TAG", "Second grid id number is: "+temp_grid2);
-                            /*gridArray[initx][inity] = temp_grid2;
-                            gridArray[finalx][finaly] = temp_grid;*/
-
+                            gridArray[initx][inity] = temp_grid2;
+                            gridArray[finalx][finaly] = temp_grid;
                             checkBoard();
-                            /*dropBoard();*/
+                            dropBoard();
+                            if(morethan == 0){
+                                gridArray[initx][inity] = temp_grid;
+                                gridArray[finalx][finaly] = temp_grid2;
+                            }
+                            else{
+                                for(int i = 0; i < 10; i++){
+                                    checkBoard();
+                                    dropBoard();
+                                }
+                            }
 
+                            Log.i("TAG", "First grid id number is: "+gridArray[initx][inity]);
+                            Log.i("TAG", "Second grid id number is: "+gridArray[finalx][finaly]);
                             off1 = off2 = off3 = off4 = off5 = off6 = 0;
 
 
-
-
-
-
+                            
                         }
                     }
                     else {
@@ -292,6 +311,14 @@ public class Game extends AppCompatActivity implements View.OnTouchListener{
                 if(!holder.getSurface().isValid()){
                     continue;
                 }
+                if(point_score.equals("YOU WIN!!!")){
+                    try{
+                        Thread.sleep(5000);
+                    }catch (InterruptedException e){
+                        e.printStackTrace();
+                    }
+                    finish();
+                }
                 Canvas c = holder.lockCanvas();
                 Paint Paint = new TextPaint();
                 Paint.setTextSize(120);
@@ -299,7 +326,14 @@ public class Game extends AppCompatActivity implements View.OnTouchListener{
                 Paint.setColor(Color.YELLOW);
                 c.drawBitmap(screen,0,0,null);
                 c.drawText("Score:", 25, 250, Paint);
-                c.drawText(point_score, 400, 250, Paint);
+                if(valueofscore >= 3000){
+                    point_score = "YOU WIN!!!";
+                    c.drawText(point_score, 400, 250, Paint);
+                }
+                else {
+                    point_score = String.valueOf(valueofscore);
+                    c.drawText(point_score, 400, 250, Paint);
+                }
                 for(int i=0; i<9; i++){
                     for(int j=0; j<9; j++){
                         switch(gridArray[i][j]){
